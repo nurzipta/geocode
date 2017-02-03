@@ -168,6 +168,8 @@ app.get('/autocomplete', (req, res) => {
 		input: req.query.q
 	}
 
+	var raw_data = '';
+
 	Request({
 		    url: urlAutocomplete,
 		    qs: param,
@@ -176,13 +178,24 @@ app.get('/autocomplete', (req, res) => {
 		},  (error, response, body) => {
 		    if(error) {
 		        console.log(error);
-		    } else {
-			    body = JSON.parse(body);
-
-			    mapping_autocomplete(body);
-
-			    res.send(body);
 		    }
+		}).on('data', function(chunk){
+			raw_data += chunk;
+		}).on('end', function(){
+			var data = '';
+			try
+			{
+				data = JSON.parse(raw_data);
+			}
+			catch(e)
+			{
+				data = 'Unexpected end of JSON input';
+				console.log('parse error', e);
+			}
+
+			mapping_autocomplete(data);
+
+			res.send(data);
 		});
 });
 
